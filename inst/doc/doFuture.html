@@ -213,12 +213,12 @@ in many different ways depending on which strategy is used.
 There are various types of synchronous and asynchronous futures to
 choose from in the <a href="https://cran.r-project.org/package=future">future</a> package.
 Additional futures are implemented in other packages.
-For instance, the <a href="https://github.com/HenrikBengtsson/future.BatchJobs">future.BatchJobs</a> package provides futures for
+For instance, the <a href="https://cran.r-project.org/package=future.BatchJobs">future.BatchJobs</a> package provides futures for
 <em>any</em> type of backend that the <a href="https://cran.r-project.org/package=BatchJobs">BatchJobs</a> package supports.
 For an introduction to futures in R, please consult the
 vignettes of the <a href="https://cran.r-project.org/package=future">future</a> package.</p>
 
-<p>The <a href="https://github.com/HenrikBengtsson/doFuture">doFuture</a> package provides a <code>%dopar%</code> adaptor for the <a href="https://cran.r-project.org/package=foreach">foreach</a>
+<p>The <a href="https://cran.r-project.org/package=doFuture">doFuture</a> package provides a <code>%dopar%</code> adaptor for the <a href="https://cran.r-project.org/package=foreach">foreach</a>
 package that works with <em>any</em> type of future.
 The doFuture package is cross platform just as the future package.</p>
 
@@ -242,7 +242,7 @@ x &lt;- foreach(i = 1:3, .export = c(&quot;mu&quot;, &quot;sigma&quot;)) %dopar%
 <h2>Futures bring foreach to the HPC cluster</h2>
 
 <p>To do the same on high-performance computing (HPC) cluster, the
-<a href="https://github.com/HenrikBengtsson/future.BatchJobs">future.BatchJobs</a> package can be used.  Assuming BatchJobs has
+<a href="https://cran.r-project.org/package=future.BatchJobs">future.BatchJobs</a> package can be used.  Assuming BatchJobs has
 been configured correctly, then following foreach iterations will
 be submitted to the HPC job scheduler and distributed for
 evaluation on the compute nodes.</p>
@@ -250,7 +250,7 @@ evaluation on the compute nodes.</p>
 <pre><code class="r">library(&quot;doFuture&quot;)
 registerDoFuture()
 library(&quot;future.BatchJobs&quot;)
-plan(batchjobs)
+plan(batchjobs_slurm)
 
 mu &lt;- 1.0
 sigma &lt;- 2.0
@@ -261,7 +261,7 @@ x &lt;- foreach(i = 1:3, .export = c(&quot;mu&quot;, &quot;sigma&quot;)) %dopar%
 
 <h2>Futures for plyr</h2>
 
-<p>The <a href="https://cran.r-project.org/package=plyr">plyr</a> package uses <a href="https://cran.r-project.org/package=foreach">foreach</a> as a parallel backend.  This means that with <a href="https://github.com/HenrikBengtsson/doFuture">doFuture</a> any type of futures can be used for asynchronous (and synchronous) plyr processing including multicore, multisession, MPI, ad hoc clusters and HPC job schedulers.  For example,</p>
+<p>The <a href="https://cran.r-project.org/package=plyr">plyr</a> package uses <a href="https://cran.r-project.org/package=foreach">foreach</a> as a parallel backend.  This means that with <a href="https://cran.r-project.org/package=doFuture">doFuture</a> any type of futures can be used for asynchronous (and synchronous) plyr processing including multicore, multisession, MPI, ad hoc clusters and HPC job schedulers.  For example,</p>
 
 <pre><code class="r">library(&quot;doFuture&quot;)
 registerDoFuture()
@@ -285,7 +285,7 @@ y &lt;- llply(x, quantile, probs = 1:3/4, .parallel = TRUE)
 
 <h2>Futures and BiocParallel</h2>
 
-<p>The <a href="https://bioconductor.org/packages/release/bioc/html/BiocParallel.html">BiocParallel</a> package supports any <code>%dopar%</code> adaptor as a parallel backend.  This means that with <a href="https://github.com/HenrikBengtsson/doFuture">doFuture</a>, BiocParallel supports any type of future.  For example,</p>
+<p>The <a href="https://bioconductor.org/packages/release/bioc/html/BiocParallel.html">BiocParallel</a> package supports any <code>%dopar%</code> adaptor as a parallel backend.  This means that with <a href="https://cran.r-project.org/package=doFuture">doFuture</a>, BiocParallel supports any type of future.  For example,</p>
 
 <pre><code class="r">library(&quot;doFuture&quot;)
 registerDoFuture()
@@ -304,7 +304,7 @@ x &lt;- bplapply(1:3, mu = mu, sigma = sigma, function(i, mu, sigma) {
 
 <p>The foreach package has some support for automated handling of globals, but it does not work in all cases.  Specifically, if <code>foreach()</code> is called from within a function, you do need to export globals explicitly.  For example, although globals <code>a</code> and <code>b</code> are properly exported when we do</p>
 
-<pre><code class="r">&gt; library(&quot;foreach&quot;)
+<pre><code class="r">&gt; library(&quot;doParallel&quot;)
 &gt; registerDoParallel(parallel::makeCluster(2))
 &gt; mu &lt;- 1.0
 &gt; sigma &lt;- 2.0
@@ -335,9 +335,9 @@ Error in { : task 1 failed - &quot;object &#39;mu&#39; not found&quot;
 
 <p>However, when using the <code>%dopar%</code> adaptor of doFuture, all of the <a href="https://cran.r-project.org/package=future">future</a> machinery comes in to play including automatic handling of global variables, e.g.</p>
 
-<pre><code class="r">&gt; library(&quot;foreach&quot;)
+<pre><code class="r">&gt; library(&quot;doFuture&quot;)
 &gt; registerDoFuture()
-&gt; plan(cluster, workers=parallel::makeCluster(2))
+&gt; plan(cluster, workers=2)
 &gt; mu &lt;- 1.0
 &gt; sigma &lt;- 2.0
 &gt; foo &lt;- function() foreach(i = 1:3) %dopar% { rnorm(i, mean = mu, sd = sigma) }
@@ -353,7 +353,7 @@ List of 3
 
 <h2>doFuture replaces existing doNnn packages</h2>
 
-<p>Due to the generic nature of futures, the <a href="https://github.com/HenrikBengtsson/doFuture">doFuture</a> package
+<p>Due to the generic nature of futures, the <a href="https://cran.r-project.org/package=doFuture">doFuture</a> package
 provides the same functionality as many of the existing doNnn
 packages combined, e.g. <a href="https://cran.r-project.org/package=doMC">doMC</a>, <a href="https://cran.r-project.org/package=doParallel">doParallel</a>, <a href="https://cran.r-project.org/package=doMPI">doMPI</a>, and <a href="https://cran.r-project.org/package=doSNOW">doSNOW</a>.</p>
 
@@ -484,7 +484,7 @@ plan(cluster, workers=cl)
 
 <p><table></p>
 
-<p>Comment: There is currently no known future implementation and therefore no known <a href="https://github.com/HenrikBengtsson/doFuture">doFuture</a> alternative to the <a href="https://cran.r-project.org/package=doRedis">doRedis</a> packages.</p>
+<p>Comment: There is currently no known future implementation and therefore no known <a href="https://cran.r-project.org/package=doFuture">doFuture</a> alternative to the <a href="https://cran.r-project.org/package=doRedis">doRedis</a> packages.</p>
 
 <hr/>
 
