@@ -269,7 +269,7 @@ plan(multiprocess)
 
 library(&quot;plyr&quot;)
 x &lt;- list(a = 1:10, beta = exp(-3:3), logic = c(TRUE, FALSE, FALSE, TRUE))
-y &lt;- llply(x, quantile, probs = 1:3/4, .parallel = TRUE)
+y &lt;- llply(x, quantile, probs = (1:3) / 4, .parallel = TRUE)
 ## $a
 ##  25%  50%  75%
 ## 3.25 5.50 7.75
@@ -337,7 +337,7 @@ Error in { : task 1 failed - &quot;object &#39;mu&#39; not found&quot;
 
 <pre><code class="r">&gt; library(&quot;doFuture&quot;)
 &gt; registerDoFuture()
-&gt; plan(cluster, workers=2)
+&gt; plan(cluster, workers = 2)
 &gt; mu &lt;- 1.0
 &gt; sigma &lt;- 2.0
 &gt; foo &lt;- function() foreach(i = 1:3) %dopar% { rnorm(i, mean = mu, sd = sigma) }
@@ -375,7 +375,7 @@ registerDoSEQ()
 
 <pre><code class="r">library("doFuture")
 registerDoFuture()
-plan(eager)
+plan(sequential)
 </code></pre>
 
 <p></td>
@@ -434,7 +434,7 @@ registerDoParallel(cl)
 <pre><code class="r">library("doFuture")
 registerDoFuture()
 cl <- makeCluster(4)
-plan(cluster, workers=cl)
+plan(cluster, workers = cl)
 </code></pre>
 
 <p></td>
@@ -444,7 +444,7 @@ plan(cluster, workers=cl)
 <td></p>
 
 <pre><code class="r">library("doMPI")
-cl <- startMPIcluster(count=4)
+cl <- startMPIcluster(count = 4)
 registerDoMPI(cl)
 
 </code></pre>
@@ -454,8 +454,8 @@ registerDoMPI(cl)
 
 <pre><code class="r">library("doFuture")
 registerDoFuture()
-cl <- makeCluster(4, type="MPI")
-plan(cluster, workers=cl)
+cl <- makeCluster(4, type = "MPI")
+plan(cluster, workers = cl)
 </code></pre>
 
 <p></td>
@@ -476,7 +476,7 @@ registerDoSNOW(cl)
 <pre><code class="r">library("doFuture")
 registerDoFuture()
 cl <- makeCluster(4)
-plan(cluster, workers=cl)
+plan(cluster, workers = cl)
 </code></pre>
 
 <p></td>
@@ -488,7 +488,7 @@ plan(cluster, workers=cl)
 
 <hr/>
 
-<p>Copyright Henrik Bengtsson, 2016</p>
+<p>Copyright Henrik Bengtsson, 2016-2017</p>
 
 </body>
 
