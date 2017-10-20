@@ -349,7 +349,7 @@ List of 3
  $ : num [1:3] -0.104 1.237 2.474
 </code></pre>
 
-<p>Having said all this, in order to write foreach code that works everywhere, it is better to be conservative and not assume that all end users will use a doFuture backend.  Because of this, it is still recommended to explicitly specify all objects that need to be export whenever using the foreach API.</p>
+<p>Having said all this, in order to write foreach code that works everywhere, it is better to be conservative and not assume that all end users will use a doFuture backend.  Because of this, it is still recommended to explicitly specify all objects that need to be export whenever using the foreach API.  The doFuture framework can help you identify what should go into the <code>.export</code> argument.  By setting <code>options(doFuture.foreach.export = &quot;.export-and-automatic-with-warning&quot;)</code>, doFuture will scan each <code>foreach() %dopar% { ... }</code> call for globals.  If it detects global candidates not listed in <code>.export</code>, it will produce an informative warning message suggesting that those should be added.</p>
 
 <h2>doFuture replaces existing doNnn packages</h2>
 
@@ -482,9 +482,38 @@ plan(cluster, workers = cl)
 <p></td>
 </tr></p>
 
-<p><table></p>
+<p><tr style="vertical-align: center;">
+<td>
+N/A
+</td>
+<td>
+High-performance compute (HPC) schedulers, e.g.
+SGE, Slurm, and TORQUE / PBS.</p>
 
-<p>Comment: There is currently no known future implementation and therefore no known <a href="https://cran.r-project.org/package=doFuture">doFuture</a> alternative to the <a href="https://cran.r-project.org/package=doRedis">doRedis</a> packages.</p>
+<pre><code class="r">library("doFuture")
+registerDoFuture()
+library(future.batchtools)
+plan(batchtools_sge)
+</code></pre>
+
+<p></td>
+</tr></p>
+
+<p><tr style="vertical-align: center;">
+<td></p>
+
+<pre><code class="r">library("doRedis")
+registerDoRedis("jobs")
+startLocalWorkers(n = 4, queue = "jobs")
+</code></pre>
+
+<p></td>
+<td>
+N/A.  There is currently no known Redis-based future backend and therefore no known doFuture alternative to the <a href="https://cran.r-project.org/package=doRedis">doRedis</a> package.
+</td>
+</tr></p>
+
+<p><table></p>
 
 <hr/>
 
