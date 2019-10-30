@@ -1,5 +1,5 @@
 Package: doFuture
-Version: 0.8.1
+Version: 0.8.2
 Title: A Universal Foreach Parallel Adapter using the Future API of the
         'future' Package
 Depends: globals (>= 0.12.4), future (>= 1.14.0), foreach (>= 1.4.4),
@@ -16,8 +16,8 @@ URL: https://github.com/HenrikBengtsson/doFuture
 BugReports: https://github.com/HenrikBengtsson/doFuture/issues
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-07-20 12:14:17 UTC; hb
+Packaged: 2019-10-30 01:22:11 UTC; hb
 Author: Henrik Bengtsson [aut, cre, cph]
 Maintainer: Henrik Bengtsson <henrikb@braju.com>
 Repository: CRAN
-Date/Publication: 2019-07-20 14:50:02 UTC
+Date/Publication: 2019-10-30 07:10:03 UTC
