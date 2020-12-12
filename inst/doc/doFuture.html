@@ -230,11 +230,11 @@ parallel using background R process.</p>
 registerDoFuture()
 plan(multisession)
 
-mu &lt;- 1.0
-sigma &lt;- 2.0
-x &lt;- foreach(i = 1:3, .export = c(&quot;mu&quot;, &quot;sigma&quot;)) %dopar% {
-  rnorm(i, mean = mu, sd = sigma)
+cutoff &lt;- 0.10
+y &lt;- foreach(x = mtcars, .export = c(&quot;cutoff&quot;)) %dopar% {
+  mean(x, trim = cutoff)
 }
+names(y) &lt;- colnames(mtcars)
 </code></pre>
 
 <h2>Futures bring foreach to the HPC cluster</h2>
@@ -247,14 +247,13 @@ evaluation on the compute nodes.</p>
 
 <pre><code class="r">library(&quot;doFuture&quot;)
 registerDoFuture()
-library(&quot;future.batchtools&quot;)
-plan(batchjobs_slurm)
+plan(future.batchtools::batchjobs_slurm)
 
-mu &lt;- 1.0
-sigma &lt;- 2.0
-x &lt;- foreach(i = 1:3, .export = c(&quot;mu&quot;, &quot;sigma&quot;)) %dopar% {
-  rnorm(i, mean = mu, sd = sigma)
+cutoff &lt;- 0.10
+y &lt;- foreach(x = mtcars, .export = c(&quot;cutoff&quot;)) %dopar% {
+  mean(x, trim = cutoff)
 }
+names(y) &lt;- colnames(mtcars)
 </code></pre>
 
 <h2>Futures for plyr</h2>
@@ -264,10 +263,10 @@ x &lt;- foreach(i = 1:3, .export = c(&quot;mu&quot;, &quot;sigma&quot;)) %dopar%
 <pre><code class="r">library(&quot;doFuture&quot;)
 registerDoFuture()
 plan(multisession)
-
 library(&quot;plyr&quot;)
-x &lt;- list(a = 1:10, beta = exp(-3:3), logic = c(TRUE, FALSE, FALSE, TRUE))
-y &lt;- llply(x, quantile, probs = (1:3) / 4, .parallel = TRUE)
+
+cutoff &lt;- 0.10
+y &lt;- llply(mtcars, mean, trim = cutoff, .parallel = TRUE)
 ## $a
 ##  25%  50%  75%
 ## 3.25 5.50 7.75
@@ -291,78 +290,86 @@ plan(multisession)
 library(&quot;BiocParallel&quot;)
 register(DoparParam(), default = TRUE)
 
-mu &lt;- 1.0
-sigma &lt;- 2.0
-x &lt;- bplapply(1:3, mu = mu, sigma = sigma, function(i, mu, sigma) {
-  rnorm(i, mean = mu, sd = sigma)
-})
+cutoff &lt;- 0.10
+x &lt;- bplapply(mtcars, mean, trim = cutoff)
 </code></pre>
 
 <h2>doFuture takes care of exports and packages automatically</h2>
 
 <p>The foreach package itself has some support for automated handling of globals but unfortunately it does not work in all cases.  Specifically, if <code>foreach()</code> is called from within a function, you do need to export globals explicitly.  For example, although globals <code>my</code> and <code>sigma</code> are properly exported when we do</p>
 
-<pre><code class="r">&gt; library(&quot;doParallel&quot;)
-&gt; registerDoParallel(parallel::makeCluster(2))
-&gt; mu &lt;- 1.0
-&gt; sigma &lt;- 2.0
-&gt; x &lt;- foreach(i = 1:3) %dopar% { rnorm(i, mean = mu, sd = sigma) }
-&gt; str(x)
-List of 3
- $ : num -1.42
- $ : num [1:2] 3.12 -1.33
- $ : num [1:3] -0.0376 -0.1446 1.6368
+<pre><code class="r">library(&quot;doParallel&quot;)
+registerDoParallel(parallel::makeCluster(2))
+
+cutoff &lt;- 0.10
+y &lt;- foreach(x = mtcars) %dopar% {
+  mean(x, trim = cutoff)
+}
+names(y) &lt;- colnames(mtcars)
 </code></pre>
 
 <p>it falls short as soon as we try to do the same from within a function;</p>
 
-<pre><code class="r">&gt; foo &lt;- function() foreach(i = 1:3) %dopar% { rnorm(i, mean = mu, sd = sigma) }
-&gt; x &lt;- foo()
-Error in { : task 1 failed - &quot;object &#39;mu&#39; not found&quot;
+<pre><code class="r">my_mean &lt;- function() {
+  y &lt;- foreach(x = mtcars) %dopar% {
+    mean(x, trim = cutoff)
+  }
+  names(y) &lt;- colnames(mtcars)
+  y
+}
+
+x &lt;- my_mean()
+## Error in { : task 1 failed - &quot;object &#39;cutoff&#39; not found&quot;
 </code></pre>
 
 <p>The solution is to explicitly export global variables, e.g.</p>
 
-<pre><code class="r">&gt; foo &lt;- function() {
-+   foreach(i = 1:3, .export = c(&quot;mu&quot;, &quot;sigma&quot;)) %dopar% {
-+     rnorm(i, mean = mu, sd = sigma)
-+   }
-+ }
-&gt; x &lt;- foo()
+<pre><code class="r">my_mean &lt;- function() {
+  y &lt;- foreach(x = mtcars, .export = &quot;cutoff&quot;) %dopar% {
+    mean(x, trim = cutoff)
+  }
+  names(y) &lt;- colnames(mtcars)
+  y
+}
+
+y &lt;- my_mean()
 </code></pre>
 
-<p>However, when using the <code>%dopar%</code> adapter of doFuture, all of the <a href="https://cran.r-project.org/package=future">future</a> machinery comes in to play including automatic handling of global variables, e.g.</p>
+<p>In contrast, when using the <code>%dopar%</code> adapter of doFuture, all of the <a href="https://cran.r-project.org/package=future">future</a> machinery comes in to play including automatic handling of global variables, e.g.</p>
 
-<pre><code class="r">&gt; library(&quot;doFuture&quot;)
-&gt; registerDoFuture()
-&gt; plan(multisession, workers = 2)
-&gt; mu &lt;- 1.0
-&gt; sigma &lt;- 2.0
-&gt; foo &lt;- function() foreach(i = 1:3) %dopar% { rnorm(i, mean = mu, sd = sigma) }
-&gt; x &lt;- foo()
-&gt; str(x)
-List of 3
- $ : num 0.358
- $ : num [1:2] 3.317 -0.689
- $ : num [1:3] -0.104 1.237 2.474
+<pre><code class="r">library(&quot;doFuture&quot;)
+registerDoFuture()
+plan(multisession, workers = 2)
+
+my_mean &lt;- function() {
+  y &lt;- foreach(x = mtcars) %dopar% {
+    mean(x, trim = cutoff)
+  }
+  names(y) &lt;- colnames(mtcars)
+  y
+}
+
+x &lt;- my_mean()
 </code></pre>
+
+<p>will indeed work.</p>
 
 <p>Another advantage with doFuture is that, contrary to doParallel, packages that need to be attached are also automatically taken care of, e.g.</p>
 
-<pre><code class="r">&gt; registerDoFuture()
-&gt; library(&quot;tools&quot;)
-&gt; ext &lt;- foreach(file = c(&quot;abc.txt&quot;, &quot;def.log&quot;)) %dopar% file_ext(file)
-&gt; unlist(ext)
-[1] &quot;txt&quot; &quot;log&quot;
+<pre><code class="r">registerDoFuture()
+library(&quot;tools&quot;)
+ext &lt;- foreach(file = c(&quot;abc.txt&quot;, &quot;def.log&quot;)) %dopar% file_ext(file)
+unlist(ext)
+## [1] &quot;txt&quot; &quot;log&quot;
 </code></pre>
 
 <p>whereas</p>
 
-<pre><code class="r">&gt; registerDoParallel(parallel::makeCluster(2))
-&gt; library(&quot;tools&quot;)
-&gt; ext &lt;- foreach(file = c(&quot;abc.txt&quot;, &quot;def.log&quot;)) %dopar% file_ext(file)
-Error in file_ext(file) : 
-  task 1 failed - &quot;could not find function &quot;file_ext&quot;&quot;
+<pre><code class="r">registerDoParallel(parallel::makeCluster(2))
+library(&quot;tools&quot;)
+ext &lt;- foreach(file = c(&quot;abc.txt&quot;, &quot;def.log&quot;)) %dopar% file_ext(file)
+## Error in file_ext(file) : 
+##   task 1 failed - &quot;could not find function &quot;file_ext&quot;&quot;
 </code></pre>
 
 <p>Having said all this, in order to write foreach code that works everywhere, it is better to be conservative and not assume that all end users will use a doFuture backend.  Because of this, it is still recommended to explicitly specify all objects that need to be export whenever using the foreach API.  The doFuture framework can help you identify what should go into the <code>.export</code> argument.  By setting <code>options(doFuture.foreach.export = &quot;.export-and-automatic-with-warning&quot;)</code>, doFuture will in warn if it finds globals not listed in <code>.export</code> and produce an informative warning message suggesting that those should be added.  To assert that argument <code>.export</code> is correct, test the code with <code>options(doFuture.foreach.export = &quot;.export&quot;)</code>, which will disable automatic identification of globals such that only the globals specified by the <code>.export</code> argument is used.</p>
@@ -429,7 +436,8 @@ registerDoParallel()
 
 <pre><code class="r">library("doFuture")
 registerDoFuture()
-plan(multiprocess)
+plan(multisession)  ## on MS Windows
+plan(multicore)     ## on Linux, Solaris, and macOS
 </code></pre>
 
 <p></td>
@@ -546,7 +554,7 @@ N/A.  There is currently no known Redis-based future backend and therefore no kn
 
 <hr/>
 
-<p>Copyright Henrik Bengtsson, 2016-2019</p>
+<p>Copyright Henrik Bengtsson, 2016-2020</p>
 
 </body>
 
