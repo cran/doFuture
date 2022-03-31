@@ -247,7 +247,7 @@ evaluation on the compute nodes.</p>
 
 <pre><code class="r">library(&quot;doFuture&quot;)
 registerDoFuture()
-plan(future.batchtools::batchjobs_slurm)
+plan(future.batchtools::batchtools_slurm)
 
 cutoff &lt;- 0.10
 y &lt;- foreach(x = mtcars, .export = c(&quot;cutoff&quot;)) %dopar% {
@@ -551,10 +551,6 @@ N/A.  There is currently no known Redis-based future backend and therefore no kn
 </tr></p>
 
 <p><table></p>
-
-<hr/>
-
-<p>Copyright Henrik Bengtsson, 2016-2020</p>
 
 </body>
 
