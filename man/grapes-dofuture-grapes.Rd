@@ -19,7 +19,7 @@ The value of the foreach call.
 Loop over a Foreach Expression using Futures
 }
 \details{
-This is a replacement for \code{\link{\%dopar\%}} of the \pkg{foreach} package
+This is a replacement for \verb{\%dopar\%} of the \pkg{foreach} package
 that leverages the \pkg{future} framework.
 
 When using \verb{\%dofuture\%}:

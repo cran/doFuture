@@ -7,7 +7,7 @@
 \title{doFuture: Foreach Parallel Adapter using Futures}
 \description{
 The \pkg{doFuture} package provides mechanisms for using the
-\strong{\link{foreach}} package together with the \strong{\link{future}} package
+\pkg{foreach} package together with the \pkg{future} package
 such that \code{foreach()} parallelizes via \emph{any} future backend.
 }
 \section{Usage}{
@@ -73,3 +73,16 @@ framework.
 See \code{\link[=registerDoFuture]{registerDoFuture()}} for more details and examples on this approach.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://doFuture.futureverse.org}
+  \item \url{https://github.com/futureverse/doFuture}
+  \item Report bugs at \url{https://github.com/futureverse/doFuture/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Henrik Bengtsson \email{henrikb@braju.com} (\href{https://orcid.org/0000-0002-7579-5165}{ORCID}) [copyright holder]
+
+}

@@ -8,7 +8,7 @@
 #' @return The value of the foreach call.
 #'
 #' @details
-#' This is a replacement for [`%dopar%`] of the \pkg{foreach} package
+#' This is a replacement for `%dopar%` of the \pkg{foreach} package
 #' that leverages the \pkg{future} framework.
 #'
 #' When using `%dofuture%`:
@@ -165,7 +165,7 @@
 #'
 #' @export
 `%dofuture%` <- function(foreach, expr) {
-  stopifnot(inherits(foreach, "foreach"))
+  stop_if_not(inherits(foreach, "foreach"))
   expr <- substitute(expr)
   doFuture2(foreach, expr, envir = parent.frame(), data = NULL)
 }
@@ -186,17 +186,6 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
   debug <- getOption("doFuture.debug", FALSE)
   if (debug) mdebug("doFuture2() ...")
 
-  make_function <- function(argnames, body, envir = parent.frame()) {
-    FUN <- function() NULL
-    empty_formal <- alist(a =)
-    args <- rep(empty_formal, times = length(argnames))
-    names(args) <- argnames
-    attr(expr, "srcref") <- NULL
-    body(FUN) <- expr
-    formals(FUN) <- args
-    environment(FUN) <- envir
-    FUN
-  }
 
   ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   ## 1. Input from foreach
@@ -295,8 +284,8 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
   ## than one element is processed per future.  The adjustment is done by
   ## scaling up the limit by the number of elements in the chunk.  This is
   ## a "good enough" approach.
-  ## (https://github.com/HenrikBengtsson/future.apply/issues/8,
-  ##  https://github.com/HenrikBengtsson/doFuture/issues/26)
+  ## (https://github.com/futureverse/future.apply/issues/8,
+  ##  https://github.com/futureverse/doFuture/issues/26)
   globals.maxSize <- getOption("future.globals.maxSize")
   if (nchunks > 1 && !is.null(globals.maxSize) && globals.maxSize < +Inf) {
     globals.maxSize.default <- globals.maxSize
@@ -370,8 +359,13 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
 
 
   ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  ## 2. Construct the 'FUN' function
+  ## 2. Construct future expression from %dofuture% expression
   ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  if (debug) {
+    mdebug("- %dofuture% R expression:")
+    mprint(expr)
+  }
+
   ## WORKAROUND: foreach::times() passes an empty string in 'argnames'
   argnames <- it$argnames
   argnames <- argnames[nzchar(argnames)]
@@ -396,29 +390,23 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
     dummy_globals <- bquote_apply(tmpl_dummy_globals)
   }
 
+  ## Apply temporary patches?
+  optional_patches <- patch_expressions()
+
   ## With or without RNG?
-  expr <- bquote_apply(
-    if (is.null(seeds)) {
-      tmpl_expr
-    } else {
-      tmpl_expr_with_rng
-    }
-  )
-  
-  rm(list = "dummy_globals") ## Not needed anymore
+  if (is.null(seeds)) {
+    seed_assignment <- NULL
+  } else {
+    seed_assignment <- quote(assign(".Random.seed", ...future.seeds_ii[[jj]], envir = globalenv(), inherits = FALSE))
+  }
+  expr_mapreduce <- bquote_apply(tmpl_expr_with_rng)
+  rm(list = c("dummy_globals", "seed_assignment")) ## Not needed anymore
 
   if (debug) {
-    mdebug("- R expression:")
-    mprint(expr)
+    mdebug("- R expression (map-reduce expression adjusted for RNG):")
+    mprint(expr_mapreduce)
   }
 
-  ## The iterator arguments in 'argnames' should be passed as regular
-  ## arguments to the 'FUN' function part of the future_lapply() call.
-  FUN <- make_function(argnames, body = expr, envir = envir)
-  if (debug) {
-    mprint(FUN)
-  }
-    
 
   ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   ## 3. Identify globals and packages
@@ -432,9 +420,10 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
   
   ## Environment from where to search for globals
   globals_envir <- new.env(parent = envir)
-  assign("...future.x_ii", 42, envir = globals_envir, inherits = FALSE)
 
   add <- attr(globals, "add", exact = TRUE)
+
+  assign("...future.x_ii", 42, envir = globals_envir, inherits = FALSE)
   add <- c(add, "...future.x_ii")
 
   ignore <- attr(globals, "ignore", exact = TRUE)
@@ -447,13 +436,49 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
     attr(globals, "ignore") <- ignore
   }
 
-  mstr(globals)
-  gp <- getGlobalsAndPackages(expr, envir = globals_envir, globals = globals, packages = packages)
-  globals <- gp$globals
+  if (debug) {
+    mdebug("  - Argument 'globals':\n")
+    mstr(globals)
+    mdebug("  - R expression (map-reduce expression searched for globals):")
+    mprint(expr_mapreduce)
+  }
+
+  gp <- getGlobalsAndPackages(expr_mapreduce, envir = globals_envir, globals = globals, packages = packages)
+  globals_mapreduce <- gp$globals
   packages <- unique(c(gp$packages, packages))
-  expr <- gp$expr
+  expr_mapreduce <- gp$expr
   rm(list = c("gp", "globals_envir")) ## Not needed anymore
-  mstr(globals)
+
+
+  ## Search also %dofuture% expression alone, to pick up things
+  ## like a <- a + 1, where 'a' is a global
+  ## This was added to make future with evalFuture() backward compatible
+  ## with previous versions of the 'future' package /HB 2025-02-08
+  if (getOption("doFuture.globals.scanVanillaExpression", TRUE)) {
+    if (debug) {
+      mdebug("  - R expression (%dofuture% expression searched for globals):")
+      mprint(expr)
+    }
+  
+    gp <- getGlobalsAndPackages(expr, envir = envir, globals = globals, packages = packages)
+    globals <- gp$globals
+    diff <- setdiff(names(globals), names(globals_mapreduce))
+    if (debug) {
+      mdebug("- Globals in %dofuture% R expression not in map-reduce expression:")
+      mdebugf("  - Appending %d globals only found in the vanilla %%dofuture%% expression: %s", length(diff), paste(sQuote(diff), collapse = ", "))
+    }
+    if (length(diff) > 0) {
+      globals_mapreduce <- c(globals_mapreduce, globals[diff])
+    }
+  }
+
+  globals <- globals_mapreduce
+
+  if (debug) {
+    mdebugf("  - globals: [%d] %s", length(globals),
+           paste(sQuote(names(globals)), collapse = ", "))
+    mstr(globals)
+  }
   
   ## Also make sure we've got our in-house '...future.x_ii' covered.
   stop_if_not("...future.x_ii" %in% names(globals),
@@ -466,11 +491,6 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
   packages <- unique(c("doFuture", packages))
   
   if (debug) {
-    mdebug("  - R expression:")
-    mprint(expr)
-    mdebugf("  - globals: [%d] %s", length(globals),
-           paste(sQuote(names(globals)), collapse = ", "))
-    mstr(globals)
     mdebugf("  - packages: [%d] %s", length(packages),
            paste(sQuote(packages), collapse = ", "))
   
@@ -494,7 +514,7 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
     args_list_ii <- args_list[chunk]
     globals_ii[["...future.x_ii"]] <- args_list_ii
 
-    if (debug) mdebugf(" - Finding globals in 'args_list' chunk #%d ...", ii)
+    if (debug) mdebugf(" - Finding globals in 'args_list' for chunk #%d ...", ii)
     ## Search for globals in 'args_list_ii':
     gp <- getGlobalsAndPackages(args_list_ii, envir = envir, globals = TRUE)
     globals_X <- gp$globals
@@ -540,7 +560,7 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
     }
 
     fs[[ii]] <- future(
-      expr, substitute = FALSE,
+      expr_mapreduce, substitute = FALSE,
       envir = envir,
       globals = globals_ii,
       packages = packages_ii,
@@ -834,23 +854,11 @@ tmpl_dummy_globals <- bquote_compile({
   .(name) <- NULL
 })
 
-tmpl_expr <- bquote_compile({
-  lapply(seq_along(...future.x_ii), FUN = function(jj) {
-    ...future.x_jj <- ...future.x_ii[[jj]]  #nolint
-    .(dummy_globals)
-    ...future.env <- environment()          #nolint
-    local({
-      for (name in names(...future.x_jj)) {
-        assign(name, ...future.x_jj[[name]],
-               envir = ...future.env, inherits = FALSE)
-      }
-    })
-    tryCatch(.(expr), error = identity)
-  })
-})
-
 
 tmpl_expr_with_rng <- bquote_compile({
+  .(optional_patches)
+  
+  "# doFuture():::doFuture2(): process chunk of elements"
   lapply(seq_along(...future.x_ii), FUN = function(jj) {
     ...future.x_jj <- ...future.x_ii[[jj]]  #nolint
     .(dummy_globals)
@@ -861,13 +869,14 @@ tmpl_expr_with_rng <- bquote_compile({
                envir = ...future.env, inherits = FALSE)
       }
     })
-    assign(".Random.seed", ...future.seeds_ii[[jj]], envir = globalenv(), inherits = FALSE)
+    .(seed_assignment)
     tryCatch(.(expr), error = identity)
   })
 })
 
 
 tmpl_expr_options <- bquote_compile({
+  "# doFuture:::doFuture2(): preserve future option"
   ...future.globals.maxSize.org <- getOption("future.globals.maxSize")
   if (!identical(...future.globals.maxSize.org, ...future.globals.maxSize)) {
     oopts <- options(future.globals.maxSize = ...future.globals.maxSize)

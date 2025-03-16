@@ -45,7 +45,11 @@ for (strategy in strategies) {
   }
   y <- tryCatch(sub(x, 2:3), error = identity)
   str(y)
-  stopifnot((strategy %in% c(c("cluster", "multisession")) && inherits(y, "simpleError")) || identical(y, y_truth))
+  if (doFuture:::future_has_evalFuture()) {
+    stopifnot(inherits(y, "simpleError"))
+  } else {
+    stopifnot((strategy %in% c(c("cluster", "multisession")) && inherits(y, "simpleError")) || identical(y, y_truth))
+  }
 
   # Shutdown current plan
   plan(sequential)
@@ -115,7 +119,7 @@ for (strategy in strategies) {
   plan(strategy)
   
   message("- foreach(f = X, ...) - 'f' containing globals ...")
-  ## From https://github.com/HenrikBengtsson/future.apply/issues/12
+  ## From https://github.com/futureverse/future.apply/issues/12
   z1 <- foreach(f = F, g = G) %do% list(f(), g())
   str(z1)
   stopifnot(identical(z1, z0))

@@ -1,3 +1,11 @@
+# Version 1.0.2 (2025-03-15)
+
+## Miscellaneous
+
+ * Prepare for upcoming changes in the **future** package affecting
+   how globals are identified by **doFuture**.
+ 
+
 # Version 1.0.1 (2023-12-19)
 
 ## Bug Fixes

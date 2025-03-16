@@ -32,6 +32,13 @@
 #'        generated. (Default: `FALSE`)}
 #' }
 #'
+#' @section Environment variables that set R options:
+#' All of the above \R \option{doFfuture.*} options can be set by
+#' corresponding environment variable \env{R_FOFUTURE_*} _when the
+#' \pkg{doFuture} package is loaded_.
+#' For example, if `R_DOFUTURE_DEBUG=TRUE`, then option
+#' \option{doFuture.debug} is set to `TRUE` (logical).
+#'
 #' @keywords internal
 #' @name doFuture.options
 NULL

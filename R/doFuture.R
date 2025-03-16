@@ -11,9 +11,11 @@ doFuture <- local({
   })
 
   tmpl_expr <- bquote_compile({
-    ## Tell foreach to keep using futures also in nested calls
+    "# doFuture():::doFuture(): Make sure that foreach uses 'doFuture'"
+    "# also in nested calls                                           "
     doFuture::registerDoFuture()
 
+    "# doFuture():::doFuture(): process chunk of elements"
     lapply(seq_along(...future.x_ii), FUN = function(jj) {
       ...future.x_jj <- ...future.x_ii[[jj]]  #nolint
       .(dummy_globals)
@@ -29,6 +31,7 @@ doFuture <- local({
   })
 
   tmpl_expr_options <- bquote_compile({
+    "# doFuture:::doFuture(): preserve future option"
     ...future.globals.maxSize.org <- getOption("future.globals.maxSize")
     if (!identical(...future.globals.maxSize.org, ...future.globals.maxSize)) {
       oopts <- options(future.globals.maxSize = ...future.globals.maxSize)
@@ -211,8 +214,8 @@ function(obj, expr, envir, data) {   #nolint
   ## than one element is processed per future.  The adjustment is done by
   ## scaling up the limit by the number of elements in the chunk.  This is
   ## a "good enough" approach.
-  ## (https://github.com/HenrikBengtsson/future.apply/issues/8,
-  ##  https://github.com/HenrikBengtsson/doFuture/issues/26)
+  ## (https://github.com/futureverse/future.apply/issues/8,
+  ##  https://github.com/futureverse/doFuture/issues/26)
   globals.maxSize <- getOption("future.globals.maxSize")
   if (nchunks > 1 && !is.null(globals.maxSize) && globals.maxSize < +Inf) {
     globals.maxSize.default <- globals.maxSize

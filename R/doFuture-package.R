@@ -1,7 +1,7 @@
 #' doFuture: Foreach Parallel Adapter using Futures
 #'
 #' The \pkg{doFuture} package provides mechanisms for using the
-#' **[foreach]** package together with the **[future]** package
+#' \pkg{foreach} package together with the \pkg{future} package
 #' such that `foreach()` parallelizes via _any_ future backend.
 #'
 #' @section Usage:
@@ -76,7 +76,6 @@
 #' [glmnet]: https://cran.r-project.org/package=glmnet
 #' [BiocParallel]: https://bioconductor.org/packages/BiocParallel/
 #'
-#' @docType package
 #' @aliases doFuture-package
 #' @name doFuture
-NULL
+"_PACKAGE"

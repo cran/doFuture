@@ -39,4 +39,13 @@ lacks some of the globals that the automatic identification locates
 generated. (Default: \code{FALSE})}
 }
 }
+\section{Environment variables that set R options}{
+
+All of the above \R \option{doFfuture.*} options can be set by
+corresponding environment variable \env{R_FOFUTURE_*} \emph{when the
+\pkg{doFuture} package is loaded}.
+For example, if \code{R_DOFUTURE_DEBUG=TRUE}, then option
+\option{doFuture.debug} is set to \code{TRUE} (logical).
+}
+
 \keyword{internal}
