@@ -1,7 +1,7 @@
 Package: doFuture
-Version: 1.0.2
+Version: 1.1.0
 Title: Use Foreach to Parallelize via the Future Framework
-Depends: foreach (>= 1.5.0), future (>= 1.32.0)
+Depends: foreach (>= 1.5.0), future (>= 1.49.0)
 Imports: future.apply, globals, iterators, parallel, utils
 Suggests: doRNG (>= 1.8.2), markdown, R.rsp
 VignetteBuilder: R.rsp
@@ -15,12 +15,13 @@ LazyLoad: TRUE
 URL: https://doFuture.futureverse.org,
         https://github.com/futureverse/doFuture
 BugReports: https://github.com/futureverse/doFuture/issues
+Language: en-US
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-03-16 05:18:51 UTC; henrik
-Author: Henrik Bengtsson [aut, cre, cph]
-    (<https://orcid.org/0000-0002-7579-5165>)
+Packaged: 2025-05-19 05:33:15 UTC; henrik
+Author: Henrik Bengtsson [aut, cre, cph] (ORCID:
+    <https://orcid.org/0000-0002-7579-5165>)
 Maintainer: Henrik Bengtsson <henrikb@braju.com>
 Repository: CRAN
-Date/Publication: 2025-03-16 06:00:02 UTC
+Date/Publication: 2025-05-22 05:30:02 UTC

@@ -69,8 +69,12 @@ withDoRNG <- function(expr, substitute = TRUE, envir = parent.frame()) {
   }
   
   oldDoPar <- .getDoPar()
-  doRNG::registerDoRNG()
-  on.exit(with(oldDoPar, setDoPar(fun=fun, data=data, info=info)))
+  on.exit(setDoPar(
+     fun = oldDoPar[["fun"]],
+    data = oldDoPar[["data"]],
+    info = oldDoPar[["info"]]
+  ))
 
+  doRNG::registerDoRNG()
   eval(expr, envir = envir, enclos = baseenv())
 }

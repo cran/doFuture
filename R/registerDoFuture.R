@@ -10,6 +10,11 @@
 #' and packages making using the \pkg{foreach} framework._
 #' Neither the developer nor the end user has to change any code.
 #'
+#' @param flavor Control how the adapter should behave.
+#' If `"%dopar%"`, it behaves as a classical foreach adapter.
+#' If `"%dofuture%"`, it behaves as if `%dofuture%` would have
+#' been used instead of `%dopar%`.
+#' 
 #' @section Parallel backends:
 #' To use futures with the \pkg{foreach} package and its
 #' \code{\link[foreach:\%dopar\%]{\%dopar\%}} operator, use
@@ -189,10 +194,23 @@
 #' @importFrom utils packageVersion
 #' @export
 #' @keywords utilities
-registerDoFuture <- function() {  #nolint
+registerDoFuture <- function(flavor = c("%dopar%", "%dofuture%")) {  #nolint
+  flavor <- match.arg(flavor, several.ok = FALSE)
+
+  if (flavor == "%dopar%") {
+    name <- "doFuture"
+    doFcn <- doFuture
+  } else if (flavor == "%dofuture%") {
+    name <- "doFuture2"
+    doFcn <- function(obj, expr, envir, data) {
+      obj$useForeachArguments <- TRUE
+      doFuture2(obj, expr = expr, envir = envir, data = NULL)
+    }
+  }
+
   info <- function(data, item) {
     switch(item,
-      name = "doFuture",
+      name = name,
       version = packageVersion("doFuture"),
       workers = nbrOfWorkers(),
     )
@@ -217,26 +235,29 @@ registerDoFuture <- function() {  #nolint
   ## is supported. /HB 2020-12-28
   oldDoPar <- .getDoPar()
 
-  setDoPar(doFuture, info = info)
+  setDoPar(doFcn, info = info)
 
   invisible(oldDoPar)
 }
 
 
+#' @importFrom foreach registerDoSEQ
 .getDoPar <- function() {
   ns <- getNamespace("foreach")
   .foreachGlobals <- get(".foreachGlobals", envir = ns)
   if (exists("fun", envir = .foreachGlobals, inherits = FALSE)) {
-    structure(list(
+    res <- structure(list(
       fun  = .foreachGlobals$fun,
-      data = .foreachGlobals$data, 
+      data = .foreachGlobals$data,
       info = .foreachGlobals$info
     ), class = "DoPar")
+    if (is.null(res[["info"]])) res[["info"]] <- NULL
   } else {
-    structure(list(
+    res <- structure(list(
       fun  = get("doSEQ", mode = "function", envir = ns),
       data = NULL,
-      info = NULL
+      info = environment(registerDoSEQ)[["info"]]
     ), class = c("DoPar", "DoSeq"))
   }
+  res
 }

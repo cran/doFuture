@@ -1,3 +1,38 @@
+# Version 1.1.0 (2025-05-19)
+
+## New Features
+
+ * `foreach()` with `%dofuture%` or `%dopar%` will now exit early as
+   soon as it detects an error in one of the iterations. It will also
+   exit early if it detects a user interrupt (e.g. Ctrl-C). Remaining
+   iterations are canceled and interrupted if the future backend
+   supports it, releasing compute resources sooner and avoiding having
+   to wait for remaining futures to be resolved.
+
+ * Add support for `foreach(..., .verbose = TRUE)`, which is part of
+   the official `foreach()` API. When set, detailed debugging
+   information useful for troubleshooting is outputted to standard
+   error through R's message condition mechanism.
+
+ * Add support for `with(registerDoFuture(), { ... })` to temporarily
+   use the doFuture adapter.
+   
+ * Add `registerDoFuture(flavor = "%dofuture%")`, which makes the
+   `%dopar%` infix operator behave as if `%dofuture%` would have been
+   used. This makes it possible for you to use `%dofuture%`, even if
+   you do not have the option to update the code that uses
+   `%dopar%`. For instance, if you use one of the many packages that
+   uses `foreach(...) %dopar% { ... }` internally, this flavor allows
+   you to effectively make that the same as `foreach(...)  %dofuture%
+   { ... }`.
+
+## Bug Fixes
+
+ * `registerDoFuture()` would return an invalid `DoPar` object if
+   there was no `%dopar%` registered. Now it returns an `DoPar` object
+   as if `foreach::registerDoSEQ()` had been called before.
+
+
 # Version 1.0.2 (2025-03-15)
 
 ## Miscellaneous

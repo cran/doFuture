@@ -4,7 +4,13 @@
 \alias{registerDoFuture}
 \title{Use the Foreach \verb{\%dopar\%} Adapter with Futures}
 \usage{
-registerDoFuture()
+registerDoFuture(flavor = c("\%dopar\%", "\%dofuture\%"))
+}
+\arguments{
+\item{flavor}{Control how the adapter should behave.
+If \code{"\%dopar\%"}, it behaves as a classical foreach adapter.
+If \code{"\%dofuture\%"}, it behaves as if \verb{\%dofuture\%} would have
+been used instead of \verb{\%dopar\%}.}
 }
 \value{
 \code{registerDoFuture()} returns, invisibly, the previously registered
