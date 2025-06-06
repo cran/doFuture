@@ -378,9 +378,9 @@ function(obj, expr, envir, data) {   #nolint
 
     fs
   }, interrupt = function(int) {
-    onDoFutureInterrupt(int, op_name = "%dopar%", debug = debug)
+    onInterrupt(int, op_name = "%dopar%", debug = debug)
   }, error = function(e) {
-    onDoFutureError(e, futures = fs, debug = debug)
+    onError(e, futures = fs, debug = debug)
   }) ## tryCatch()
   rm(list = c("chunks", "globals", "packages", "labels"))
   stop_if_not(length(fs) == nchunks)
@@ -430,7 +430,7 @@ function(obj, expr, envir, data) {   #nolint
         f <- fs[[idx]]
         label <- f$label
         if (is.null(label)) label <- "<none>"
-        message <- sprintf("UNRELIABLE VALUE: One of the foreach() iterations (%s) unexpectedly generated random numbers without declaring so. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, use '%%dorng%%' from the 'doRNG' package instead of '%%dopar%%'. This ensures that proper, parallel-safe random numbers are produced via the L'Ecuyer-CMRG method. To disable this check, set option 'doFuture.rng.onMisuse' to \"ignore\".", sQuote(label))
+        message <- sprintf("UNRELIABLE VALUE: One of the foreach() iterations (%s) unexpectedly generated random numbers without declaring so. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, use '%%dorng%%' from the 'doRNG' package instead of '%%dopar%%'. This ensures that proper, parallel-safe random numbers are produced. To disable this check, set option 'doFuture.rng.onMisuse' to \"ignore\".", sQuote(label))
         cond$message <- message
         if (inherits(cond, "warning")) {
           warning(cond)
@@ -448,9 +448,9 @@ function(obj, expr, envir, data) {   #nolint
       resolve(fs, result = TRUE, stdout = TRUE, signal = TRUE)
     }
   }, interrupt = function(int) {
-    onDoFutureInterrupt(int, op_name = "%dopar%", debug = debug)
+    onInterrupt(int, op_name = "%dopar%", debug = debug)
   }, error = function(e) {
-    onDoFutureError(e, futures = fs, debug = debug)
+    onError(e, futures = fs, debug = debug)
   }) ## tryCatch()
 
   ## Gather values

@@ -70,19 +70,24 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
     options[name] <- opts[name]
   }
   options(future.disposable = NULL)
-  
-  errors <- options[["errors"]]
-  if (is.null(errors)) {
-    errors <- "future"
-  } else if (is.character(errors)) {
-    if (length(errors) != 1L) {
-      stop(sprintf("Element 'errors' of '.options.future' should be of length one': [n = %d] %s", length(errors), paste(sQuote(errors), collapse = ", ")))
-    }
-    if (! errors %in% c("future", "foreach")) {
-      stop(sprintf("Unknown value of '.options.future' element 'errors': %s", sQuote(errors)))
-    }
+
+  error_handling <- obj$errorHandling
+  if (!identical(error_handling, "stop")) {
+    errors <- "foreach"
   } else {
-    stop("Unknown type of '.options.future' element 'errors': ", mode(errors))
+    errors <- options[["errors"]]
+    if (is.null(errors)) {
+      errors <- "future"
+    } else if (is.character(errors)) {
+      if (length(errors) != 1L) {
+        stop(sprintf("Element 'errors' of '.options.future' should be of length one': [n = %d] %s", length(errors), paste(sQuote(errors), collapse = ", ")))
+      }
+      if (! errors %in% c("future", "foreach")) {
+        stop(sprintf("Unknown value of '.options.future' element 'errors': %s", sQuote(errors)))
+      }
+    } else {
+      stop("Unknown type of '.options.future' element 'errors': ", mode(errors))
+    }
   }
 
 
@@ -172,7 +177,6 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
   if (is.null(seed)) seed <- eval(formals(future)$seed)
   if (debug) mdebugf("seed = %s", deparse(seed))
 
-  make_rng_seeds <- import_future("make_rng_seeds")
   seeds <- make_rng_seeds(nX, seed = seed)
 
   ## Future expression (with or without setting the RNG state) and
@@ -184,8 +188,6 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
       mdebug("RNG seeds:")
       mstr(seeds)
     }
-    next_random_seed <- import_future("next_random_seed")
-    set_random_seed <- import_future("set_random_seed")
     ## If RNG seeds are used (given or generated), make sure to reset
     ## the RNG state afterward
     oseed <- next_random_seed()    
@@ -452,9 +454,9 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
 
     fs
   }, interrupt = function(int) {
-    onDoFutureInterrupt(int, debug = debug)
+    onInterrupt(int, op_name = "%dofuture%", debug = debug)
   }, error = function(e) {
-    onDoFutureError(e, futures = fs, debug = debug)
+    onError(e, futures = fs, debug = debug)
   }) ## tryCatch()
   rm(list = c("globals", "packages", "labels", "seeds"))
   stop_if_not(length(fs) == nchunks)
@@ -519,7 +521,7 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
           iterations <- seq_to_human(chunk)
           iterations <- sprintf("At least one of iterations %s", iterations)
         }
-        message <- sprintf("UNRELIABLE VALUE: %s of the foreach() %%dofuture%% { ... }, part of chunk #%d (%s), unexpectedly generated random numbers without declaring so. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, specify foreach() argument '.options.future = list(seed = TRUE)'. This ensures that proper, parallel-safe random numbers are produced via the L'Ecuyer-CMRG method. To disable this check, set option 'doFuture.rng.onMisuse' to \"ignore\".", iterations, idx, sQuote(label))
+        message <- sprintf("UNRELIABLE VALUE: %s of the foreach() %%dofuture%% { ... }, part of chunk #%d (%s), unexpectedly generated random numbers without declaring so. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, specify foreach() argument '.options.future = list(seed = TRUE)'. This ensures that proper, parallel-safe random numbers are produced. To disable this check, set option 'doFuture.rng.onMisuse' to \"ignore\".", iterations, idx, sQuote(label))
         cond$message <- message
         if (inherits(cond, "warning")) {
           warning(cond)
@@ -534,9 +536,9 @@ doFuture2 <- function(obj, expr, envir, data) {   #nolint
     }
     values
   }, interrupt = function(int) {
-    onDoFutureInterrupt(int, debug = debug)
+    onInterrupt(int, op_name = "%dofuture%", debug = debug)
   }, error = function(e) {
-    onDoFutureError(e, futures = fs, debug = debug)
+    onError(e, futures = fs, debug = debug)
   }) ## tryCatch()
   rm(list = "chunks")
   stop_if_not(length(values) == nchunks)
@@ -633,7 +635,6 @@ elements in 'X' (= %d). There were in total %d chunks and %d elements (%s)",
       ## ... or as traditionally with %dopar%, which throws an error
       ## or return the combined results
       ## NOTE: This is adopted from foreach:::doSEQ()
-      error_handling <- obj$errorHandling
       if (debug) {
         mdebugf("processing errors (handler = %s)", sQuote(error_handling))
       }

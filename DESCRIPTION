@@ -1,5 +1,5 @@
 Package: doFuture
-Version: 1.1.0
+Version: 1.1.1
 Title: Use Foreach to Parallelize via the Future Framework
 Depends: foreach (>= 1.5.0), future (>= 1.49.0)
 Imports: future.apply, globals, iterators, parallel, utils
@@ -19,9 +19,9 @@ Language: en-US
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-05-19 05:33:15 UTC; henrik
+Packaged: 2025-06-06 04:25:08 UTC; henrik
 Author: Henrik Bengtsson [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0002-7579-5165>)
 Maintainer: Henrik Bengtsson <henrikb@braju.com>
 Repository: CRAN
-Date/Publication: 2025-05-22 05:30:02 UTC
+Date/Publication: 2025-06-06 05:50:02 UTC

@@ -1,7 +1,7 @@
 #' @importFrom future FutureInterruptError
-onDoFutureInterrupt <- function(int, op_name = "%dofuture%", debug = FALSE) {
+onInterrupt <- function(int, op_name, debug = FALSE) {
   if (debug) {
-    mdebug_push("onDoFutureInterrupt() ...")
+    mdebug_push("onInterrupt() ...")
     mdebug(sprintf("Received <%s>", class(int)[1]))
     on.exit(mdebug_pop())
   }
@@ -12,16 +12,16 @@ onDoFutureInterrupt <- function(int, op_name = "%dofuture%", debug = FALSE) {
   msg <- sprintf("'%s' interrupted at %s, while running on %s (pid %s)", op_name, format(when, format = "%FT%T"), sQuote(host), pid)
 
   ## By signaling the interrupt as an error, the next handler, which should
-  ## be onDoFutureError(), will take care of canceling outstanding futures
+  ## be onError(), will take care of canceling outstanding futures
   stop(FutureInterruptError(msg))
-} ## onDoFutureInterrupt()
+}
 
 
 
 #' @importFrom future cancel resolve value
-onDoFutureError <- function(ex, futures, debug = FALSE) {
+onError <- function(ex, futures, debug = FALSE) {
   if (debug) {
-    mdebug_push("onDoFutureError() ...")
+    mdebug_push("onError() ...")
     mdebug(sprintf("Received <%s>", class(ex)[1]))
     on.exit(mdebug_pop())
   }
@@ -40,4 +40,4 @@ onDoFutureError <- function(ex, futures, debug = FALSE) {
   if (debug) mdebug(sprintf("Signaling: <%s>", class(ex)[1]))
 
   stop(ex)
-} ## onDoFutureError()
+}

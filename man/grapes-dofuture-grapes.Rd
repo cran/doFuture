@@ -30,7 +30,8 @@ When using \verb{\%dofuture\%}:
 whenever using random numbers in the \code{expr} expression)
 \item global variables and packages are identified automatically by
 the \pkg{future} framework
-\item errors are relayed as-is (with \verb{\%dopar\%} they captured and modified)
+\item errors are relayed as-is with the default \code{.errorhandling = "stop"},
+whereas with \verb{\%dopar\%} they are captured and modified.
 }
 }
 \section{Global variables and packages}{
@@ -71,12 +72,12 @@ seed / RNG state} - this regardless of type of future backend, number of
 workers, and scheduling ("chunking") strategy.
 
 RNG reproducibility is achieved by pregenerating the random seeds for all
-iterations by using L'Ecuyer-CMRG RNG streams.  In each
+iterations by parallel RNG streams.  In each
 iteration, these seeds are set before evaluating the foreach expression.
 \emph{Note, for large number of iterations this may introduce a large overhead.}
 
 If \code{seed = TRUE}, then \code{\link[base:Random]{.Random.seed}}
-is used if it holds a L'Ecuyer-CMRG RNG seed, otherwise one is created
+is used if it holds a parallel RNG seed, otherwise one is created
 randomly.
 
 If \code{seed = FALSE}, it is expected that none of the foreach iterations
@@ -87,9 +88,9 @@ Using \code{seed = NULL}, is like \code{seed = FALSE} but without the check
 whether random numbers were generated or not.
 
 As input, \code{seed} may also take a fixed initial seed (integer),
-either as a full L'Ecuyer-CMRG RNG seed (vector of 1+6 integers), or
-as a seed generating such a full L'Ecuyer-CMRG seed. This seed will
-be used to generated one L'Ecuyer-CMRG RNG stream for each iteration.
+either as a full parallel RNG seed (vector of 1+6 integers), or
+as a seed generating such a full seed. This seed will
+be used to generated one parallel RNG stream for each iteration.
 
 An alternative to specifying the \code{seed} option via \code{.options.future},
 is to use the \code{\link[future:\%seed\%]{\%seed\%}} operator.  See

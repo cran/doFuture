@@ -1,3 +1,14 @@
+# Version 1.1.1 (2025-06-06)
+
+## Bug Fixes
+
+ * `foreach(...) %dofuture% { ... }` would signal errors, despite
+   using `.errorhandling = "pass"` or `.errorhandling = "remove"`.
+   This was originally by design, because "all errors should be
+   errors", but I have since reconsidered and concluded it was a
+   design mistake. Now `.errorhandling` works also with `%dofuture%`.
+ 
+
 # Version 1.1.0 (2025-05-19)
 
 ## New Features
@@ -15,7 +26,9 @@
    error through R's message condition mechanism.
 
  * Add support for `with(registerDoFuture(), { ... })` to temporarily
-   use the doFuture adapter.
+   use the doFuture adapter. Can also be used as
+   `with(registerDoFuture(), local = TRUE)` to temporarily register it
+   within a function.
    
  * Add `registerDoFuture(flavor = "%dofuture%")`, which makes the
    `%dopar%` infix operator behave as if `%dofuture%` would have been

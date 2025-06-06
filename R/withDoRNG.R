@@ -49,8 +49,8 @@
 #' risk that those random numbers are not statistically sound and the overall
 #' results might be invalid. To fix this, use '%dorng%' from the 'doRNG'
 #' package instead of '%dopar%'. This ensures that proper, parallel-safe
-#' random numbers are produced via the L'Ecuyer-CMRG method. To disable this
-#' check, set option 'doFuture.rng.onMisuse' to "ignore".
+#' random numbers are produced. To disable this check, set option
+#' 'doFuture.rng.onMisuse' to "ignore".
 #' >
 #' ```
 #'

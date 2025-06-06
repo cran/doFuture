@@ -9,7 +9,7 @@ registerDoFuture(flavor = c("\%dopar\%", "\%dofuture\%"))
 \arguments{
 \item{flavor}{Control how the adapter should behave.
 If \code{"\%dopar\%"}, it behaves as a classical foreach adapter.
-If \code{"\%dofuture\%"}, it behaves as if \verb{\%dofuture\%} would have
+If \code{"\%dofuture\%"}, it behaves as if \code{\link{\%dofuture\%}} would have
 been used instead of \verb{\%dopar\%}.}
 }
 \value{
@@ -26,6 +26,9 @@ In other words, \emph{if a computational backend is supported via
 the Future API, it'll be automatically available for all functions
 and packages making using the \pkg{foreach} framework.}
 Neither the developer nor the end user has to change any code.
+
+\emph{\strong{Recommendation}: If you have the option, use \code{\link{\%dofuture\%}} instead
+of \verb{\%dopar\%}, for all the benefits explained in its help page.}
 }
 \section{Parallel backends}{
 
@@ -78,12 +81,13 @@ critical, because by default the Future API identifies all globals and
 all packages automatically (via static code inspection).  This is done
 exactly the same way regardless of future backend.
 This automatic identification of globals and packages is illustrated
-by the below example, which does \emph{not} specify
+by the below example, which does \emph{not} have specify
 \code{.export = c("my_stat")}.  This works because the future framework
 detects that function \code{my_stat()} is needed and makes sure it is
 exported.  If you would use, say, \code{cl <- parallel::makeCluster(2)}
 and \code{doParallel::registerDoParallel(cl)}, you would get a run-time
-error on \code{Error in \{ : task 1 failed - \"could not find function "my_stat" ...}.
+error on \code{Error in \{ : task 1 failed - \"could not find function
+"my_stat" ...}.
 
 Having said this, note that, in order for your "foreach" code to work
 everywhere and with other types of foreach adapters as well, you may
@@ -164,12 +168,11 @@ part of the core philosophy of the \pkg{foreach} framework.
 
 However, if you think it necessary to register the \pkg{doFuture} backend
 in a function, please make sure to undo your changes when exiting the
-function. This can be done using:
+function. This can be achieve by:
 
 \preformatted{
-  oldDoPar <- registerDoFuture()
-  on.exit(with(oldDoPar, foreach::setDoPar(fun=fun, data=data, info=info)), add = TRUE)
-  [...]
+  with(registerDoFuture(), local = TRUE)
+  ...
 }
 
 This is important, because the end-user might have already registered a

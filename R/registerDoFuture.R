@@ -1,5 +1,6 @@
 #' Use the Foreach `%dopar%` Adapter with Futures
 #'
+#' @description
 #' The `registerDoFuture()` function makes the
 #' \code{\link[foreach:\%dopar\%]{\%dopar\%}} operator of the
 #' \pkg{foreach} package to process foreach iterations via any of
@@ -10,9 +11,12 @@
 #' and packages making using the \pkg{foreach} framework._
 #' Neither the developer nor the end user has to change any code.
 #'
+#' _**Recommendation**: If you have the option, use [`%dofuture%`] instead
+#' of `%dopar%`, for all the benefits explained in its help page._
+#'
 #' @param flavor Control how the adapter should behave.
 #' If `"%dopar%"`, it behaves as a classical foreach adapter.
-#' If `"%dofuture%"`, it behaves as if `%dofuture%` would have
+#' If `"%dofuture%"`, it behaves as if [`%dofuture%`] would have
 #' been used instead of `%dopar%`.
 #' 
 #' @section Parallel backends:
@@ -63,12 +67,13 @@
 #' all packages automatically (via static code inspection).  This is done
 #' exactly the same way regardless of future backend.
 #' This automatic identification of globals and packages is illustrated
-#' by the below example, which does _not_ specify
+#' by the below example, which does _not_ have specify
 #' `.export = c("my_stat")`.  This works because the future framework
 #' detects that function `my_stat()` is needed and makes sure it is
 #' exported.  If you would use, say, `cl <- parallel::makeCluster(2)`
 #' and `doParallel::registerDoParallel(cl)`, you would get a run-time
-#' error on \code{Error in \{ : task 1 failed - \"could not find function "my_stat" ...}.
+#' error on \code{Error in \{ : task 1 failed - \"could not find function
+#' "my_stat" ...}.
 #'
 #' Having said this, note that, in order for your "foreach" code to work
 #' everywhere and with other types of foreach adapters as well, you may
@@ -146,12 +151,11 @@
 #'
 #' However, if you think it necessary to register the \pkg{doFuture} backend
 #' in a function, please make sure to undo your changes when exiting the
-#' function. This can be done using:
+#' function. This can be achieve by:
 #'
 #' \preformatted{
-#'   oldDoPar <- registerDoFuture()
-#'   on.exit(with(oldDoPar, foreach::setDoPar(fun=fun, data=data, info=info)), add = TRUE)
-#'   [...]
+#'   with(registerDoFuture(), local = TRUE)
+#'   ...
 #' }
 #'
 #' This is important, because the end-user might have already registered a

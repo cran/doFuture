@@ -14,12 +14,16 @@
 #' When using `%dofuture%`:
 #'
 #' * there is no need to use `registerDoFuture()`
+#'
 #' * there is no need to use `%dorng%` of the **doRNG** package
 #'   (but you need to specify `.options.future = list(seed = TRUE)`
 #'    whenever using random numbers in the `expr` expression)
+#'
 #' * global variables and packages are identified automatically by
 #'   the \pkg{future} framework
-#' * errors are relayed as-is (with `%dopar%` they captured and modified)
+#'
+#' * errors are relayed as-is with the default `.errorhandling = "stop"`,
+#'   whereas with `%dopar%` they are captured and modified.
 #'
 #'
 #' @section Global variables and packages:
@@ -59,12 +63,12 @@
 #' workers, and scheduling ("chunking") strategy.
 #' 
 #' RNG reproducibility is achieved by pregenerating the random seeds for all
-#' iterations by using L'Ecuyer-CMRG RNG streams.  In each
+#' iterations by parallel RNG streams.  In each
 #' iteration, these seeds are set before evaluating the foreach expression.
 #' _Note, for large number of iterations this may introduce a large overhead._
 #'
 #' If `seed = TRUE`, then \code{\link[base:Random]{.Random.seed}}
-#' is used if it holds a L'Ecuyer-CMRG RNG seed, otherwise one is created
+#' is used if it holds a parallel RNG seed, otherwise one is created
 #' randomly.
 #'
 #' If `seed = FALSE`, it is expected that none of the foreach iterations
@@ -75,9 +79,9 @@
 #' whether random numbers were generated or not.
 #'
 #' As input, `seed` may also take a fixed initial seed (integer),
-#' either as a full L'Ecuyer-CMRG RNG seed (vector of 1+6 integers), or
-#' as a seed generating such a full L'Ecuyer-CMRG seed. This seed will
-#' be used to generated one L'Ecuyer-CMRG RNG stream for each iteration.
+#' either as a full parallel RNG seed (vector of 1+6 integers), or
+#' as a seed generating such a full seed. This seed will
+#' be used to generated one parallel RNG stream for each iteration.
 #'
 #' An alternative to specifying the `seed` option via `.options.future`,
 #' is to use the \code{\link[future:%seed%]{%seed%}} operator.  See
