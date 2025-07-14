@@ -63,7 +63,7 @@ getGlobalsAndPackages_doFuture <- function(expr, envir, export = NULL, noexport 
     stop("INTERNAL ERROR: Unknown value of 'globalsAs': ", sQuote(globalsAs))
   }
 
-  mstr(globals)
+  if (debug) mstr(globals)
   stop_if_not("...future.x_ii" %in% names(globals))
   
   names_globals <- names(globals)
@@ -83,7 +83,7 @@ getGlobalsAndPackages_doFuture <- function(expr, envir, export = NULL, noexport 
   if (globalsAs != "manual") {
     globals2 <- setdiff(export, names_globals)
     if (length(globals2) > 0) {
-      mdebugf("  - appending %d '.export' globals (not already found through automatic lookup): %s",
+      if (debug) mdebugf("  - appending %d '.export' globals (not already found through automatic lookup): %s",
              length(globals2), paste(sQuote(globals2), collapse = ", "))
       gp <- getGlobalsAndPackages(expr, envir = globals_envir,
                                   globals = globals2)

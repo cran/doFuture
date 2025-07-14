@@ -16,7 +16,7 @@
 #' @param \ldots Not used.
 #'
 #' @returns
-#' Invisibly, the value of `expr`.
+#' Invisibly, the value of `expr` if `local = FALSE`, other NULL.
 #'
 #' @example incl/with.R
 #'
@@ -38,9 +38,9 @@ with.DoPar <- function(data, expr, ..., local = FALSE, envir = parent.frame()) {
     call <- as.call(list(undoDoPar))
     args <- list(call, add = TRUE, after = TRUE)
     do.call(base::on.exit, args = args, envir = envir)
+    invisible(NULL)
   } else {
     on.exit(undoDoPar())
+    invisible(eval(expr, envir = envir, enclos = baseenv()))
   }
-
-  invisible(eval(expr, envir = envir, enclos = baseenv()))
 }

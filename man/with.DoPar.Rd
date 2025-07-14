@@ -21,7 +21,7 @@ expression evaluated.}
 \item{\ldots}{Not used.}
 }
 \value{
-Invisibly, the value of \code{expr}.
+Invisibly, the value of \code{expr} if \code{local = FALSE}, other NULL.
 }
 \description{
 Evaluate an Expression using a Temporarily Registered Foreach \verb{\%dopar\%} Adapter

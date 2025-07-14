@@ -1,3 +1,14 @@
+# Version 1.1.2 (2025-07-14)
+
+## Bug Fixes
+
+ * `with(registerDoFuture(), local = TRUE)` produced error on
+   'argument "expr" is missing, with no default'.
+
+ * Environment variable `R_DOFUTURE_DEBUG` did not set R option
+   `doFuture.debug` as documented.
+
+
 # Version 1.1.1 (2025-06-06)
 
 ## Bug Fixes

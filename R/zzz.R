@@ -68,6 +68,13 @@ inRCmdCheck <- local({
 .onLoad <- function(libname, pkgname) {
   import_future_functions()
 
+  value <- getOption("doFuture.debug")
+  if (is.null(value)) {
+    value <- trim(Sys.getenv("R_DOFUTURE_DEBUG"))
+    value <- isTRUE(as.logical(value))
+    options(doFuture.debug = value)
+  }
+
   value <- getOption("doFuture.workarounds")
   if (is.null(value)) {
     value <- trim(Sys.getenv("R_DOFUTURE_WORKAROUNDS"))
