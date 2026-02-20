@@ -118,7 +118,7 @@ section.footnotes {
 <h1 id="chp:dofuture-an-overview-on-using-foreach-to-parallelize-via-the-future-framework">doFuture: An Overview on using Foreach to Parallelize via the Future Framework</h1>
 <p>The <strong><a href="https://doFuture.futureverse.org">doFuture</a></strong> package provides mechanisms for using the
 <strong>foreach</strong> package together with the <strong>future</strong> package such that
-<code>foreach()</code> and <code>times()</code> parallelizes via <em>any</em> future backend.</p>
+<code>foreach()</code> and <code>times()</code> parallelize via <em>any</em> future backend.</p>
 <h2 id="sec:introduction">Introduction</h2>
 <p>The <strong><a href="https://future.futureverse.org">future</a></strong> package provides a generic API for using futures in
 R.  A future is a simple yet powerful mechanism to evaluate an R
@@ -189,10 +189,10 @@ y &lt;- foreach(x = 1:4, y = 1:10) %dopar% {
 uses <code>%dopar%</code> and you just want to switch to using the future
 framework for parallelization.  Using <code>registerDoFuture()</code> is also
 useful when you wish to use the future framework with packages and
-functions that uses <code>foreach()</code> and <code>%dopar%</code> internally,
+functions that use <code>foreach()</code> and <code>%dopar%</code> internally,
 e.g. <strong><a href="https://cran.r-project.org/package=caret">caret</a></strong>, <strong><a href="https://cran.r-project.org/package=plyr">plyr</a></strong>, <strong><a href="https://cran.r-project.org/package=NMF">NMF</a></strong>, and <strong><a href="https://cran.r-project.org/package=glmnet">glmnet</a></strong>.  It can
 also be used to configure the Bioconductor <strong><a href="https://bioconductor.org/packages/BiocParallel/">BiocParallel</a></strong> package,
-and any package that rely on it, to parallelize via the future
+and any package that relies on it, to parallelize via the future
 framework.</p>
 <p>See <code>help(&quot;registerDoFuture&quot;, package = &quot;doFuture&quot;)</code> for more details
 and examples on this approach.</p>
