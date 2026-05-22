@@ -116,29 +116,37 @@ section.footnotes {
 </div>
 <div class="body">
 <h1 id="chp:dofuture-an-overview-on-using-foreach-to-parallelize-via-the-future-framework">doFuture: An Overview on using Foreach to Parallelize via the Future Framework</h1>
-<p>The <strong><a href="https://doFuture.futureverse.org">doFuture</a></strong> package provides mechanisms for using the
-<strong>foreach</strong> package together with the <strong>future</strong> package such that
-<code>foreach()</code> and <code>times()</code> parallelize via <em>any</em> future backend.</p>
+<h2 id="sec:tl-dr">TL;DR</h2>
+<p>To run <code>foreach()</code> in parallel, install R packages <strong><a href="https://doFuture.futureverse.org">doFuture</a></strong> and
+<strong><a href="https://futurize.futureverse.org">futurize</a></strong>, and call:</p>
+<pre><code class="language-r">library(futurize)
+plan(multisession)
+
+y &lt;- foreach(x = 1:4, y = 1:10) %do% {
+  z &lt;- x + y
+  slow_sqrt(z)
+} |&gt; futurize()
+</code></pre>
+<p>That’s it - easy!</p>
 <h2 id="sec:introduction">Introduction</h2>
+<p>The <strong><a href="https://cran.r-project.org/package=foreach">foreach</a></strong> package implements a map-reduce API with functions
+<code>foreach()</code> and <code>times()</code> that provide us with powerful methods for
+iterating over one or more sets of elements with options to do it in
+parallel.</p>
 <p>The <strong><a href="https://future.futureverse.org">future</a></strong> package provides a generic API for using futures in
 R.  A future is a simple yet powerful mechanism to evaluate an R
 expression and retrieve its value at some point in time.  Futures can
 be resolved in many different ways depending on which strategy is
-used.  There are various types of synchronous and asynchronous futures
-to choose from in the <strong><a href="https://future.futureverse.org">future</a></strong> package.  Additional future
-backends are implemented in other packages.  For instance, the
-<strong><a href="https://future.batchtools.futureverse.org">future.batchtools</a></strong> package provides futures for <em>any</em> type of
-backend that the <strong><a href="https://cran.r-project.org/package=batchtools">batchtools</a></strong> package supports.  For an
-introduction to futures in R, please consult the vignettes of the
-<strong><a href="https://future.futureverse.org">future</a></strong> package.</p>
-<p>The <strong><a href="https://cran.r-project.org/package=foreach">foreach</a></strong> package implements a map-reduce API with functions
-<code>foreach()</code> and <code>times()</code> that provides us with powerful methods for
-iterating over one or more sets of elements with the option to do it
-in parallel.</p>
-<h2 id="sec:two-alternatives">Two alternatives</h2>
-<p>The <strong><a href="https://doFuture.futureverse.org">doFuture</a></strong> package provides two alternatives for using futures
+used. You can resolve them sequential, in parallel on your local
+computer, on remove computers, in the cloud, on a high-performance compute (HPC) cluster, or via any <a href="https://www.futureverse.org/backends.html">future backend</a> available.</p>
+<p>The <strong><a href="https://doFuture.futureverse.org">doFuture</a></strong> package provides a bridge between <strong>foreach</strong> and
+the <strong>future</strong> parallelization framework. Specifically, the
+<strong>doFuture</strong> package provides three alternatives for using futures
 with <strong>foreach</strong>:</p>
 <ol>
+<li>
+<p><code>y &lt;- foreach(...) %do% { ... } |&gt; futurize()</code></p>
+</li>
 <li>
 <p><code>y &lt;- foreach(...) %dofuture% { ... }</code></p>
 </li>
@@ -146,15 +154,37 @@ with <strong>foreach</strong>:</p>
 <p><code>registerDoFuture()</code> + <code>y &lt;- foreach(...) %dopar% { ... }</code>.</p>
 </li>
 </ol>
-<h3 id="sec:alternative-1-dofuture">Alternative 1: <code>%dofuture%</code></h3>
-<p>The <em>first alternative</em> (recommended), which uses <code>%dofuture%</code>, avoids
-having to use <code>registerDoFuture()</code>.  The <code>%dofuture%</code> operator
-provides a more consistent behavior than <code>%dopar%</code>, e.g. there is a
-unique set of foreach arguments instead of one per possible adapter.
-Identification of globals, random number generation (RNG), and error
-handling is handled by the future ecosystem, just like with other
-map-reduce solutions such as <strong><a href="https://future.apply.futureverse.org">future.apply</a></strong> and <strong><a href="https://furrr.futureverse.org">furrr</a></strong>.  An
-example is:</p>
+<h3 id="sec:alternative-1-futurize-recommended">Alternative 1: <code>futurize()</code> (recommended)</h3>
+<p>The <em>first alternative</em> (recommended) uses <code>futurize()</code> of the
+<strong><a href="https://futurize.futureverse.org">futurize</a></strong> package. An example is:</p>
+<pre><code class="language-r">library(futurize)
+plan(multisession)
+
+y &lt;- foreach(x = 1:4, y = 1:10) %do% {
+  z &lt;- x + y
+  slow_sqrt(z)
+} |&gt; futurize()
+</code></pre>
+<p>This alternative is the recommended and most clean way to let
+<code>foreach()</code> parallelize via the future framework, especially if you
+start out from scratch.  All you need to remember is to pipe it to
+<code>futurize()</code>, and, yes, it is correct to use <code>%do%</code> here.  In addition
+to <code>multisession</code>, parallelization can be done via any compliant
+<a href="https://www.futureverse.org/backends.html">future backend</a>.  Identification of globals, random number generation
+(RNG), and error handling is handled the same way as elsewhere in the
+future ecosystem.  We recommend to use <code>futurize()</code>, because it is
+consistent with how we parallelize <code>lapply()</code> and <code>purrr::map()</code> using
+<strong>futurize</strong>.  With <code>futurize()</code>, you do not have to explicitly load
+<strong>doFuture</strong> - instead <strong>doFuture</strong> will serve <code>futurize()</code> under the
+hood.</p>
+<p>See <code>help(&quot;futurize&quot;, package = &quot;futurize&quot;)</code> for more details and
+examples on this approach.</p>
+<h3 id="sec:alternative-2-dofuture">Alternative 2: <code>%dofuture%</code></h3>
+<p>The <em>second alternative</em> (formely recommended), which uses
+<code>%dofuture%</code>, avoids having to use <code>registerDoFuture()</code>.  The
+<code>%dofuture%</code> operator provides a more consistent behavior than
+<code>%dopar%</code>, e.g. there is a unique set of foreach arguments instead of
+one per possible adapter. An example is:</p>
 <pre><code class="language-r">library(doFuture)
 plan(multisession)
 
@@ -163,12 +193,13 @@ y &lt;- foreach(x = 1:4, y = 1:10) %dofuture% {
   slow_sqrt(z)
 }
 </code></pre>
-<p>This alternative is the recommended way to let <code>foreach()</code> parallelize
-via the future framework, especially if you start out from scratch.</p>
+<p>This alternative was the recommended way to let <code>foreach()</code>
+parallelize via the future framework, but now we recommend using
+<code>futurize()</code> instead, especially if you start out from scratch.</p>
 <p>See <code>help(&quot;%dofuture%&quot;, package = &quot;doFuture&quot;)</code> for more details and
 examples on this approach.</p>
-<h3 id="sec:alternative-2-registerdofuture-dopar">Alternative 2: <code>registerDoFuture()</code> + <code>%dopar%</code></h3>
-<p>The <em>second alternative</em> is based on the traditional <strong>foreach</strong>
+<h3 id="sec:alternative-3-registerdofuture-dopar">Alternative 3: <code>registerDoFuture()</code> + <code>%dopar%</code></h3>
+<p>The <em>third alternative</em> is based on the traditional <strong>foreach</strong>
 approach where one registers a foreach adapter to be used by
 <code>%dopar%</code>.  A popular adapter is <code>doParallel::registerDoParallel()</code>,
 which parallelizes on the local machine using the <strong>parallel</strong>
@@ -189,11 +220,8 @@ y &lt;- foreach(x = 1:4, y = 1:10) %dopar% {
 uses <code>%dopar%</code> and you just want to switch to using the future
 framework for parallelization.  Using <code>registerDoFuture()</code> is also
 useful when you wish to use the future framework with packages and
-functions that use <code>foreach()</code> and <code>%dopar%</code> internally,
-e.g. <strong><a href="https://cran.r-project.org/package=caret">caret</a></strong>, <strong><a href="https://cran.r-project.org/package=plyr">plyr</a></strong>, <strong><a href="https://cran.r-project.org/package=NMF">NMF</a></strong>, and <strong><a href="https://cran.r-project.org/package=glmnet">glmnet</a></strong>.  It can
-also be used to configure the Bioconductor <strong><a href="https://bioconductor.org/packages/BiocParallel/">BiocParallel</a></strong> package,
-and any package that relies on it, to parallelize via the future
-framework.</p>
+functions that use <code>foreach()</code> and <code>%dopar%</code> internally, but still do
+not support <code>futurize()</code>, e.g. <strong><a href="https://cran.r-project.org/package=NMF">NMF</a></strong>.</p>
 <p>See <code>help(&quot;registerDoFuture&quot;, package = &quot;doFuture&quot;)</code> for more details
 and examples on this approach.</p>
 </div>
